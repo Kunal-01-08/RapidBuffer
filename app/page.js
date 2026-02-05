@@ -31,7 +31,7 @@ export default function Home() {
     <div className="bg-gray-700 h-full w-full flex flex-col md:flex-row justify-around p-4 rounded-2xl items-center gap-5 ">
       <div className="bg-[rgb(0,0,0,0.5)] w-4/5 md:w-1/3 flex  flex-col justify-start py-4 items-center border-2 border-white h-full rounded-4xl">
       <img src="gif1.gif" className="w-15 bg-[rgb(255,255,255,0.2)] m-2 rounded-2xl " alt="" />
-      <p className="text-xl w-9/10 italic text-white">Forget things oftern?, Don't worry, save your data with us and give it an alias name to retreive later.</p>
+      <p className="text-xl w-9/10 italic text-white">Forget things often?, Don&apos;t worry, save your data with us and give it an alias name to retreive later.</p>
       </div>
        <div className="bg-[rgb(0,0,0,0.5)] w-4/5 md:w-1/3 flex flex-col justify-start py-4 items-center border-2 border-white h-full rounded-4xl">
       <img src="gif2.gif" className="w-30 rounded-2xl m-2" alt="" />

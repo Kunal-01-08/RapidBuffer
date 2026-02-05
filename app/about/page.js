@@ -137,7 +137,7 @@ const Page= () => {
       </h2>
 
       <p className="text-gray-300 leading-relaxed">
-        Rapid Buffer is not just about saving text — it's about preserving focus.
+        Rapid Buffer is not just about saving text — it&apos;s about preserving focus.
         No context switching, no searching, no copy-paste. Just type, trigger,
         and move on.
       </p>
