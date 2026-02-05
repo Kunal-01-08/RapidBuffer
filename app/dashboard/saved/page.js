@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect,useState } from 'react';
 import SavedTable from '@/components/SavedTable';
 import { getsavedDoc } from '@/userActions/actions';
-const page = () => {
+const Page= () => {
    const { data: session, status } = useSession();
   
   

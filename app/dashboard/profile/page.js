@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { updateUser } from "@/userActions/actions";
 import { getUser } from "@/userActions/actions";
-const page = () => {
+const Page= () => {
   const [File, setFile] = useState("NO FILE SELECTED");
   const { data: session, status } = useSession();
 

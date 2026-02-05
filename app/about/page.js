@@ -1,7 +1,7 @@
 "use client"
 import React from "react";
 import Link from "next/link";
-const page = () => {
+const Page= () => {
   let cards = [
     { Heading: "Home Page", src: "HomePage.mp4" },
     { Heading: "RBS Extension", src: "ExtensionUsage.mp4" },

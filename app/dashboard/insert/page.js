@@ -8,7 +8,7 @@ import { useEffect,useState } from "react";
 import { useActionState } from "react";
 const initialState = { ok: null,status:"" };
 
-const page = () => {
+const Page= () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [state, formAction] = useActionState(saveDoc, initialState);

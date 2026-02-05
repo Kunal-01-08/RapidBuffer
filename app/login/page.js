@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { signIn, signOut } from "next-auth/react";
 
-const page = () => {
+const Page= () => {
   const { data: session, status } = useSession();
   const router = useRouter();
 
