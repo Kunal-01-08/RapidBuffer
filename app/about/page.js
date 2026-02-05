@@ -1,5 +1,5 @@
 "use client"
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 const Page= () => {
   let cards = [
@@ -10,6 +10,11 @@ const Page= () => {
     { Heading: "Profile Page", src: "ProfilePage.mp4" },
     { Heading: "Login Page", src: "LoginPage.mp4" },
   ];
+  let innerWidth
+  useEffect(() => {
+    innerWidth=window.innerWidth;
+  }, [])
+  
   return (
     <div className="h-screen  w-screen m-auto  relative text-white perspective-[1600px] transform-3d rotate-x-[-15deg] ">
       <Link href="/" className="absolute">
@@ -24,7 +29,7 @@ const Page= () => {
               style={{
                 transform: `rotateY(${
                   (index * 360) / cards.length
-                }deg)${window.innerWidth < 1024 ? 'translateZ(140px)' : 'translateZ(300px)'}
+                }deg)${innerWidth < 1024 ? 'translateZ(140px)' : 'translateZ(300px)'}
 `,
               }}
               className={` border-4 border-blue-950 card lg:h-50 w-[150px] left-[calc(50%-75px)] lg:w-[320px] bg-[rgba(13,7,183,0.2)] absolute lg:left-[calc(50%-160px)] h-[calc(150*200/320)]  transform-3d`}
