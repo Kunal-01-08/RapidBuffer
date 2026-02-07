@@ -13,7 +13,7 @@ const Page= () => {
 
   const [name, setname] = useState("")
   const [contact, setcontact]=useState("")
-  const [picurl, setpicurl] = useState("/unknownUserImage.jpg")
+  const [picurl, setpicurl] = useState("profilepics/unknownUserImage.jpg")
   const router = useRouter();
 
   async function handleSubmit(formData) {
