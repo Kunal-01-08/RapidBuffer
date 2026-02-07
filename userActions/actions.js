@@ -1,5 +1,5 @@
 "use server";
-
+import fs from "fs/promises"
 import mongoose from "mongoose";
 import User from "@/models/User";
 import Doc from "@/models/Doc";
@@ -36,52 +36,72 @@ export async function connectToDatabase() {
 export async function updateUser(formData) {
   await connectToDatabase();
   const data = Object.fromEntries(formData.entries());
-  const { name, contact, email, profilepic } = data;
+  const { name, contact, email } = data;
+  const profilepic = formData.get("profilepic");
+
+  console.log(1234567890);
+  console.log(profilepic);
 
   let user = await User.findOne({ email: email });
 
   if (user) {
     user.name = name;
     user.contact = contact;
+    if (profilepic.size > 0) {
+      let uploadPath = user.profilepic.url;
+      const arrayBuffer = await profilepic.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      await fs.writeFile(`public/${uploadPath}`, buffer);
+      user.profilepic.name=profilepic.name
+    }
+
+    await user.save();
+    return;
   }
-  console.log(user);
-  user.save();
 }
 
 export async function getUser(email) {
   await connectToDatabase();
   let user = await User.findOne({ email: email }).lean();
-  return {name:user.name,contact:user.contact};
+  if (user) {
+    return {
+      name: user.name,
+      contact: user.contact,
+      picurl: user.profilepic.url,
+      picname: user.profilepic.name,
+    };
+  }
 }
 
-export async function saveDoc(prevState,fdata) {
+export async function saveDoc(prevState, fdata) {
   await connectToDatabase();
   fdata = Object.fromEntries(fdata.entries());
   let session = await getServerSession(authOptions);
 
   let document = await Doc.findOne({ email: session.user.email });
-  let validAlias=fdata.alias.trim();
-  if(validAlias===""||validAlias.split(" ").length!=1){
-    return {ok:false,status:"'Alias' name should not have spaces in between"}
+  let validAlias = fdata.alias.trim();
+  if (validAlias === "" || validAlias.split(" ").length != 1) {
+    return {
+      ok: false,
+      status: "'Alias' name should not have spaces in between",
+    };
   }
 
   if (!document) {
     document = await Doc.create({
       email: session.user.email,
       doc: [{ alias: validAlias, data: fdata.data.trim() }],
-      
     });
-    return {ok:true, status:"Data added successfully"}
+    return { ok: true, status: "Data added successfully" };
   } else {
-    if (document.doc.some(d => d.alias === validAlias)) {
+    if (document.doc.some((d) => d.alias === validAlias)) {
       console.log("duplicate alias");
-      return {ok:false,status:"Duplicate 'Alias' found"}
-    } else{
+      return { ok: false, status: "Duplicate 'Alias' found" };
+    } else {
       document.doc.push({ alias: validAlias, data: fdata.data.trim() });
       await document.save();
-      return{ok:true, status:"Data added successfully"}
-    } 
-
+      return { ok: true, status: "Data added successfully" };
+    }
   }
 }
 
@@ -89,11 +109,11 @@ export async function getsavedDoc(email) {
   await connectToDatabase();
   let document = await Doc.findOne({ email: email }).lean();
   if (document) {
-    return document.doc.sort((a, b) =>
-    a.alias.localeCompare(b.alias)
-  ).map((d)=>{
-    return {alias:d.alias,data:d.data}
-  });
+    return document.doc
+      .sort((a, b) => a.alias.localeCompare(b.alias))
+      .map((d) => {
+        return { alias: d.alias, data: d.data };
+      });
   }
 }
 
@@ -106,25 +126,22 @@ export async function allDoc(email) {
   }
 }
 
-export async function sendAliasMatch(userEmail,givenAlias){
+export async function sendAliasMatch(userEmail, givenAlias) {
   await connectToDatabase();
-  console.log(userEmail,givenAlias)
+  console.log(userEmail, givenAlias);
   let document = await Doc.findOne({ email: userEmail }).lean();
-  let doc=document.doc;
-  if(!document || !doc) return {ok:false, message:"No data found", data:"null"}
-  let arr=doc.find((d)=>d.alias===givenAlias)
-  if(arr) return {ok:true,message:"Data found",data:arr.data};
-  else return {ok:false, message:"No data found", data:null}
-
-  
-
+  let doc = document.doc;
+  if (!document || !doc)
+    return { ok: false, message: "No data found", data: "null" };
+  let arr = doc.find((d) => d.alias === givenAlias);
+  if (arr) return { ok: true, message: "Data found", data: arr.data };
+  else return { ok: false, message: "No data found", data: null };
 }
 
 export async function deleteDoc(dltAlias, userEmail) {
   await connectToDatabase();
- await Doc.updateOne(
-  { email:userEmail },
-  { $pull: { doc: { alias:dltAlias } } }
-);
-
+  await Doc.updateOne(
+    { email: userEmail },
+    { $pull: { doc: { alias: dltAlias } } },
+  );
 }
