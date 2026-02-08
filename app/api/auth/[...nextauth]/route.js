@@ -1,12 +1,11 @@
 import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import Credentials from "next-auth/providers/credentials";
+import cloudinary from "@/lib/cloudinary";
 import { connectToDatabase } from "@/userActions/actions";
 import fs from "fs/promises";
 import path from "path";
 import User from "@/models/User";
-import { nanoid } from "nanoid";
 export const authOptions = {
   providers: [
     GithubProvider({
@@ -23,16 +22,11 @@ export const authOptions = {
     async signIn({ user }) {
       await connectToDatabase();
       console.log(user);
+      console.log("User import:", User);
+console.log("Type:", typeof User);
+console.log("Has create:", User?.create);
       const existingUser = await User.findOne({ email: user.email });
       if (!existingUser) {
-        const id = nanoid();
-
-        const filename = `${Date.now()}-${id}.jpg`;
-        const uploadPath = path.join(
-          process.cwd(),
-          "public/profilepics",
-          filename,
-        );
         const defaultImagePath = path.join(
           process.cwd(),
           "public",
@@ -41,15 +35,31 @@ export const authOptions = {
         );
 
         const buffer = await fs.readFile(defaultImagePath);
-        await fs.writeFile(uploadPath, buffer);
-        let newUser = await User.create({
+        let newUser = new User({
           name: user.name,
           email: user.email,
           profilepic: {
-            url: `/profilepics/${filename}`,
             name: "RBdefault",
           },
         });
+
+        const result = await new Promise((resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream(
+              {
+                folder: "profilepics",
+                public_id: newUser._id.toString(), // optional: keeps same image per user
+                overwrite: true,
+              },
+              (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+              },
+            )
+            .end(buffer);
+        });
+        newUser.profilepic.url=result.secure_url
+        await newUser.save()
 
         console.log("New user created!");
       } else {

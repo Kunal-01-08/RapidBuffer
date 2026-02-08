@@ -1,12 +1,11 @@
 "use server";
-import fs from "fs/promises";
-import path from "path";
+
 import mongoose from "mongoose";
 import User from "@/models/User";
 import Doc from "@/models/Doc";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { profile } from "console";
+import cloudinary from "@/lib/cloudinary";
 const MONGODB_URL = process.env.MONGODB_URL;
 
 if (!MONGODB_URL) {
@@ -59,24 +58,26 @@ export async function updateUser(formData) {
       "image/svg+xml": "svg",
     };
 
-    const oldUrl = user.profilepic.url;
-    const ext = mimeMap[profilepic.type] || "jpg";
-
-    const newUrl = oldUrl.replace(/\.[^/.]+$/, `.${ext}`);
-    const newPath = path.join(process.cwd(), "public", newUrl);
 
     const buffer = Buffer.from(await profilepic.arrayBuffer());
+     const result = await new Promise((resolve, reject) => {
+              cloudinary.uploader
+                .upload_stream(
+                  {
+                    folder: "profilepics",
+                    public_id: user._id.toString(), // optional: keeps same image per user
+                    overwrite: true,
+                  },
+                  (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                  },
+                )
+                .end(buffer);
+            });
+    
 
-    // write first (safe)
-    await fs.writeFile(newPath, buffer);
-
-    // delete old file only if extension changed
-    const oldPath = path.join(process.cwd(), "public", oldUrl);
-    if (oldPath !== newPath) {
-      await fs.rm(oldPath).catch(() => {});
-    }
-
-    user.profilepic.url = newUrl;
+    user.profilepic.url = result.secure_url;
     user.profilepic.name = profilepic.name;
   }
 
