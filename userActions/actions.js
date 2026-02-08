@@ -1,10 +1,12 @@
 "use server";
-import fs from "fs/promises"
+import fs from "fs/promises";
+import path from "path";
 import mongoose from "mongoose";
 import User from "@/models/User";
 import Doc from "@/models/Doc";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { profile } from "console";
 const MONGODB_URL = process.env.MONGODB_URL;
 
 if (!MONGODB_URL) {
@@ -48,12 +50,35 @@ export async function updateUser(formData) {
     user.name = name;
     user.contact = contact;
     if (profilepic.size > 0) {
-      let uploadPath = user.profilepic.url;
-      const arrayBuffer = await profilepic.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      await fs.writeFile(`public/${uploadPath}`, buffer);
-      user.profilepic.name=profilepic.name
+    const mimeMap = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/avif": "avif",
+      "image/svg+xml": "svg",
+    };
+
+    const oldUrl = user.profilepic.url;
+    const ext = mimeMap[profilepic.type] || "jpg";
+
+    const newUrl = oldUrl.replace(/\.[^/.]+$/, `.${ext}`);
+    const newPath = path.join(process.cwd(), "public", newUrl);
+
+    const buffer = Buffer.from(await profilepic.arrayBuffer());
+
+    // write first (safe)
+    await fs.writeFile(newPath, buffer);
+
+    // delete old file only if extension changed
+    const oldPath = path.join(process.cwd(), "public", oldUrl);
+    if (oldPath !== newPath) {
+      await fs.rm(oldPath).catch(() => {});
     }
+
+    user.profilepic.url = newUrl;
+    user.profilepic.name = profilepic.name;
+  }
 
     await user.save();
     return;

@@ -26,29 +26,28 @@ export const authOptions = {
       const existingUser = await User.findOne({ email: user.email });
       if (!existingUser) {
         const id = nanoid();
-        const res = await fetch(user.image);
 
-        const contentType = res.headers.get("content-type");
-        const arrayBuffer = await res.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const mimeToExt = {
-          "image/png": "png",
-          "image/jpeg": "jpg",
-          "image/webp": "webp",
-        };
-        const filename = `${Date.now()}-${id}.${mimeToExt[contentType]}`;
+        const filename = `${Date.now()}-${id}.jpg`;
         const uploadPath = path.join(
           process.cwd(),
           "public/profilepics",
           filename,
         );
+        const defaultImagePath = path.join(
+          process.cwd(),
+          "public",
+          "profilepics",
+          "unknownUserImage.jpg",
+        );
+
+        const buffer = await fs.readFile(defaultImagePath);
         await fs.writeFile(uploadPath, buffer);
         let newUser = await User.create({
           name: user.name,
           email: user.email,
           profilepic: {
             url: `/profilepics/${filename}`,
-            name: "RBdefault.img",
+            name: "RBdefault",
           },
         });
 
